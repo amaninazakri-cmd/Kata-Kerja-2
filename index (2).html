@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#050816" />
+  <meta name="description" content="Perisai Bahasa — permainan pendidikan inklusif Bahasa Melayu untuk menguasai kata kerja tindakan." />
+  <title>Perisai Bahasa — Misi Kata Kerja</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Lexend:wght@400;500;600;700;800&family=Nunito:wght@500;600;700;800&family=Orbitron:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./style.css" />
+
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.js" crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.js" crossorigin="anonymous" defer></script>
+  <script src="./script.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#gameArea">Langkau ke permainan</a>
+
+  <div class="cyber-bg" aria-hidden="true">
+    <div class="grid-floor"></div>
+    <div class="sky-glow glow-one"></div>
+    <div class="sky-glow glow-two"></div>
+    <div class="cityline"></div>
+    <div id="ambientParticles" class="ambient-particles"></div>
+    <div class="scanline"></div>
+  </div>
+
+  <main id="app" class="app-shell">
+    <header class="topbar" aria-label="Bar navigasi permainan">
+      <button id="homeBtn" class="icon-btn" type="button" aria-label="Kembali ke menu utama" title="Menu utama">⌂</button>
+      <div class="brand-mini">
+        <span class="brand-shield" aria-hidden="true">🛡️</span>
+        <div>
+          <strong>PERISAI BAHASA</strong>
+          <small>Misi Kata Kerja</small>
+        </div>
+      </div>
+      <button id="settingsBtn" class="icon-btn" type="button" aria-label="Buka tetapan aksesibiliti" title="Tetapan">⚙</button>
+    </header>
+
+    <section id="gameArea" class="game-area" aria-live="polite">
+      <div class="camera-stage" id="cameraStage" aria-label="Ruang permainan">
+        <video id="webcam" class="webcam" playsinline muted aria-label="Paparan kamera pemain"></video>
+        <canvas id="handCanvas" class="hand-canvas" aria-hidden="true"></canvas>
+        <div id="cameraPrivacyBadge" class="privacy-badge hidden">🔒 Kamera diproses pada peranti ini sahaja</div>
+
+        <section id="hud" class="hud hidden" aria-label="Maklumat permainan">
+          <div class="hud-panel hud-left">
+            <span class="hud-label">MISI BAHASA</span>
+            <strong>KATA KERJA</strong>
+            <span id="levelBadge" class="level-badge">TAHAP 1</span>
+          </div>
+
+          <div class="hud-center">
+            <p id="missionBanner" class="mission-banner">Bersedia untuk misi.</p>
+            <div class="mission-progress-row">
+              <span id="progressText">0 / 16</span>
+              <div id="progressNodes" class="progress-nodes" role="progressbar" aria-valuemin="0" aria-valuemax="16" aria-valuenow="0" aria-label="Kemajuan misi"></div>
+            </div>
+          </div>
+
+          <div class="hud-panel hud-right">
+            <div><span class="hud-label">SKOR</span><strong id="scoreText">0</strong></div>
+            <div><span class="hud-label">COMBO</span><strong id="comboText">×1</strong></div>
+          </div>
+        </section>
+
+        <section id="learningCard" class="learning-card hidden" aria-labelledby="learningPrompt">
+          <div id="missionTypePill" class="mission-type-pill">MISI A</div>
+          <div id="visualPrompt" class="visual-prompt" aria-hidden="true">📚</div>
+          <h1 id="learningPrompt">Apakah perbuatan ini?</h1>
+          <p id="learningSupport" class="learning-support"></p>
+          <button id="repeatPromptBtn" class="mini-action" type="button">🔊 Dengar arahan</button>
+        </section>
+
+        <section id="choicesContainer" class="choices-grid hidden" aria-label="Pilihan jawapan"></section>
+
+        <div id="targetReticle" class="target-reticle hidden" aria-hidden="true">
+          <div class="reticle-ring"></div>
+          <div class="reticle-dot"></div>
+          <div id="lockProgress" class="lock-progress">0%</div>
+        </div>
+
+        <div id="energyBeam" class="energy-beam hidden" aria-hidden="true"></div>
+
+        <section id="novaPanel" class="nova-panel hidden" aria-live="polite">
+          <div class="nova-avatar" aria-hidden="true"><span>AI</span></div>
+          <div class="nova-copy">
+            <strong>A.I. NOVA</strong>
+            <small>PEMBANTU BAHASA</small>
+            <p id="novaMessage">Lihat arahan dengan teliti.</p>
+          </div>
+          <button id="hintBtn" class="hint-btn" type="button">💡 Bantu saya</button>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <!-- START MODAL -->
+  <div id="startModal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="startTitle">
+    <div class="modal-card start-card">
+      <div class="hero-emblem" aria-hidden="true">🛡️</div>
+      <p class="eyebrow">CYBER BAHASA MELAYU</p>
+      <h1 id="startTitle">PERISAI BAHASA</h1>
+      <h2>MISI KATA KERJA</h2>
+      <p class="intro-copy">Mari belajar kata kerja melalui permainan. Lihat, dengar, baca dan pilih jawapan yang betul.</p>
+
+      <div class="instruction-grid" aria-label="Cara bermain">
+        <div><span>👀</span><strong>1. Lihat</strong><small>gambar atau ayat</small></div>
+        <div><span>🔊</span><strong>2. Dengar</strong><small>arahan atau perkataan</small></div>
+        <div><span>🔤</span><strong>3. Baca</strong><small>pilihan jawapan</small></div>
+        <div><span>🎯</span><strong>4. Pilih</strong><small>jawapan yang betul</small></div>
+      </div>
+
+      <fieldset class="control-selector">
+        <legend>Pilih cara bermain</legend>
+        <label class="control-option">
+          <input type="radio" name="controlMode" value="touch" checked />
+          <span class="control-icon">🖱️</span>
+          <span><strong>MOD SENTUH / TETIK</strong><small>Mouse, skrin sentuh atau papan kekunci</small></span>
+        </label>
+        <label class="control-option">
+          <input type="radio" name="controlMode" value="camera" />
+          <span class="control-icon">✋</span>
+          <span><strong>MOD KAMERA</strong><small>Halakan tapak tangan untuk mengunci sasaran</small></span>
+        </label>
+      </fieldset>
+
+      <p class="privacy-note">🔒 Jika kamera dipilih, video hanya digunakan pada peranti untuk pengesanan tangan dan tidak dimuat naik oleh permainan ini.</p>
+
+      <button id="startGameBtn" class="primary-btn" type="button">MULA MISI</button>
+      <button id="openWordBankBtn" class="secondary-btn" type="button">📚 Lihat Kata Kerja</button>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
+  <div id="settingsModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-card settings-card">
+      <div class="modal-heading-row">
+        <div><p class="eyebrow">AKSESIBILITI</p><h2 id="settingsTitle">Tetapan Permainan</h2></div>
+        <button class="close-btn" data-close="settingsModal" type="button" aria-label="Tutup tetapan">✕</button>
+      </div>
+
+      <div class="settings-list">
+        <label class="setting-row"><span><strong>Audio arahan</strong><small>Bacakan arahan dan perkataan</small></span><input id="audioToggle" type="checkbox" checked /></label>
+        <label class="setting-row"><span><strong>Bunyi permainan</strong><small>Bunyi sasaran, betul dan tahap</small></span><input id="soundToggle" type="checkbox" checked /></label>
+        <label class="setting-row"><span><strong>Paparkan visual</strong><small>Emoji dan petunjuk visual</small></span><input id="visualToggle" type="checkbox" checked /></label>
+        <label class="setting-row"><span><strong>Kontras tinggi</strong><small>Tambahkan kontras panel dan teks</small></span><input id="contrastToggle" type="checkbox" /></label>
+        <label class="setting-row"><span><strong>Kurangkan animasi</strong><small>Kurangkan pergerakan dan kesan visual</small></span><input id="motionToggle" type="checkbox" /></label>
+        <label class="setting-row setting-select"><span><strong>Saiz tulisan</strong><small>Pilih saiz bacaan</small></span>
+          <select id="fontSizeSelect" aria-label="Saiz tulisan">
+            <option value="normal">Normal</option>
+            <option value="large">Besar</option>
+            <option value="xlarge">Sangat besar</option>
+          </select>
+        </label>
+      </div>
+      <button id="saveSettingsBtn" class="primary-btn" type="button">SIMPAN TETAPAN</button>
+    </div>
+  </div>
+
+  <!-- CAMERA LOADING -->
+  <div id="cameraLoadingModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="cameraLoadingTitle">
+    <div class="modal-card compact-card center-card">
+      <div class="radar-loader" aria-hidden="true"><span></span></div>
+      <p class="eyebrow">CYBER VISION</p>
+      <h2 id="cameraLoadingTitle">MENGAKTIFKAN KAMERA...</h2>
+      <p id="cameraLoadingText">Mengesan kamera dan pengesanan tangan.</p>
+      <div class="loading-bar" aria-hidden="true"><span id="cameraLoadingBar"></span></div>
+    </div>
+  </div>
+
+  <!-- CAMERA ERROR -->
+  <div id="cameraErrorModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="cameraErrorTitle">
+    <div class="modal-card compact-card center-card">
+      <div class="error-icon" aria-hidden="true">📷</div>
+      <p class="eyebrow">MOD KAMERA</p>
+      <h2 id="cameraErrorTitle">KAMERA TIDAK DIAKTIFKAN</h2>
+      <p id="cameraErrorText">Tidak mengapa. Kamu masih boleh bermain menggunakan mod sentuh atau tetik.</p>
+      <button id="useTouchModeBtn" class="primary-btn" type="button">GUNA MOD SENTUH</button>
+      <button id="retryCameraBtn" class="secondary-btn" type="button">CUBA KAMERA SEMULA</button>
+    </div>
+  </div>
+
+  <!-- FEEDBACK MODAL -->
+  <div id="feedbackModal" class="modal-backdrop feedback-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="feedbackTitle">
+    <div id="feedbackCard" class="modal-card feedback-card">
+      <div id="feedbackIcon" class="feedback-icon" aria-hidden="true">✅</div>
+      <p id="feedbackKicker" class="eyebrow">PENGUKUHAN</p>
+      <h2 id="feedbackTitle">BETUL!</h2>
+      <div id="feedbackVisual" class="feedback-visual" aria-hidden="true">🏃</div>
+      <h3 id="feedbackWord">BERLARI</h3>
+      <p id="feedbackSentence">Amir berlari di padang.</p>
+      <div id="feedbackExtra" class="feedback-extra"></div>
+      <div class="feedback-actions">
+        <button id="feedbackSpeakBtn" class="secondary-btn" type="button">🔊 DENGAR</button>
+        <button id="nextQuestionBtn" class="primary-btn" type="button">SETERUSNYA →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VICTORY MODAL -->
+  <div id="victoryModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="victoryTitle">
+    <div class="modal-card victory-card">
+      <div class="victory-burst" aria-hidden="true">🎉</div>
+      <p class="eyebrow">MISI SELESAI</p>
+      <h2 id="victoryTitle">TAHNIAH!</h2>
+      <p>Kamu telah menyelesaikan Misi Kata Kerja.</p>
+      <div id="starRating" class="star-rating" aria-label="Penilaian bintang"></div>
+
+      <div class="stat-grid">
+        <div><span>Kata Dikuasai</span><strong id="masteredStat">16 / 16</strong></div>
+        <div><span>Jawapan Betul</span><strong id="correctStat">0</strong></div>
+        <div><span>Perlu Ulang Kaji</span><strong id="reviewStat">0</strong></div>
+        <div><span>Combo Tertinggi</span><strong id="comboStat">×1</strong></div>
+        <div class="wide-stat"><span>Skor Akhir</span><strong id="finalScoreStat">0</strong></div>
+      </div>
+
+      <div class="victory-actions">
+        <button id="replayBtn" class="primary-btn" type="button">🔄 MAIN SEMULA</button>
+        <button id="reviewBtn" class="secondary-btn" type="button">📚 ULANG KAJI</button>
+        <button id="victoryWordBankBtn" class="secondary-btn" type="button">📝 LIHAT PERKATAAN</button>
+        <button id="victoryHomeBtn" class="ghost-btn" type="button">🏠 MENU UTAMA</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORD BANK MODAL -->
+  <div id="wordBankModal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="wordBankTitle">
+    <div class="modal-card wordbank-card">
+      <div class="modal-heading-row">
+        <div><p class="eyebrow">RINGKASAN PEMBELAJARAN</p><h2 id="wordBankTitle">Kata Kerja yang Saya Pelajari</h2></div>
+        <button class="close-btn" data-close="wordBankModal" type="button" aria-label="Tutup senarai kata kerja">✕</button>
+      </div>
+      <div id="wordBankGrid" class="wordbank-grid"></div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+</body>
+</html>
